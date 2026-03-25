@@ -1,0 +1,50 @@
+{
+  "per_scene": {
+    "eth": {
+      "minADE": 1.16,
+      "minFDE": 2.0
+    },
+    "hotel": {
+      "minADE": 0.55,
+      "minFDE": 0.73
+    },
+    "univ": {
+      "minADE": 0.85,
+      "minFDE": 1.43
+    },
+    "zara1": {
+      "minADE": 0.85,
+      "minFDE": 1.39
+    },
+    "zara2": {
+      "minADE": 0.72,
+      "minFDE": 1.14
+    }
+  },
+  "ablation": {
+    "Full Model": {
+      "minADE": 1.56,
+      "minFDE": 2.61,
+      "diversity": 7.0
+    },
+    "Temporal Only": {
+      "minADE": 1.58,
+      "minFDE": 2.81,
+      "diversity": 7.19
+    },
+    "No Social": {
+      "minADE": 1.45,
+      "minFDE": 2.58,
+      "diversity": 6.97
+    },
+    "MLP Decoder": {
+      "minADE": 1.72,
+      "minFDE": 3.18,
+      "diversity": 0.01
+    }
+  },
+  "average": {
+    "minADE": 0.826,
+    "minFDE": 1.338
+  }
+}

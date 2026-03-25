@@ -1,0 +1,79 @@
+# MotionTransformer Configuration - ETH/UCY Benchmark
+# ====================================================
+
+# Data
+data:
+  dataset: "eth_ucy"
+  obs_len: 8            # 3.2 seconds of observed trajectory
+  pred_len: 12          # 4.8 seconds of predicted trajectory
+  skip: 1
+  min_ped: 2
+  max_neighbors: 10
+  delim: "\t"
+  augment: true
+  augment_angle_range: 15  # degrees
+
+# Model Architecture
+model:
+  # Embedding
+  input_dim: 2           # (x, y) coordinates
+  embed_dim: 128
+  
+  # Temporal Encoder
+  temporal:
+    num_heads: 8
+    num_layers: 4
+    ff_dim: 512
+    dropout: 0.1
+    
+  # Social Encoder
+  social:
+    num_heads: 8
+    num_layers: 3
+    ff_dim: 512
+    dropout: 0.1
+    neighbor_radius: 3.0  # meters
+    
+  # Gated Fusion
+  fusion:
+    gate_type: "sigmoid"  # sigmoid | softmax
+    
+  # Diffusion Decoder
+  diffusion:
+    num_steps: 100
+    beta_start: 0.0001
+    beta_end: 0.05
+    beta_schedule: "cosine"  # linear | cosine
+    decoder_layers: 6
+    decoder_heads: 8
+    decoder_ff_dim: 512
+    
+  # Sampling
+  num_samples: 20        # K for best-of-K evaluation
+
+# Training
+training:
+  batch_size: 64
+  epochs: 100
+  lr: 1.0e-4
+  weight_decay: 1.0e-5
+  warmup_epochs: 5
+  grad_clip: 1.0
+  optimizer: "adamw"
+  scheduler: "cosine_annealing"
+  
+  # Loss weights
+  loss:
+    diffusion_weight: 1.0
+    diversity_weight: 0.1
+
+# Evaluation
+evaluation:
+  best_of_k: 20
+  collision_threshold: 0.1  # meters
+  
+# Logging
+logging:
+  log_interval: 10
+  save_interval: 5
+  tensorboard: true
