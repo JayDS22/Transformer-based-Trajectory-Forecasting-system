@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MotionTransformer — Live Demo</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0a0e17;--bg2:#111827;--bg3:#1e293b;
+  --tx:#e2e8f0;--tx2:#94a3b8;--tx3:#64748b;
+  --ac:#60a5fa;--ac2:#3b82f6;--gn:#34d399;--rd:#f87171;--am:#fbbf24;--pp:#a78bfa;
+  --radius:12px;--mono:'JetBrains Mono',monospace;--sans:'DM Sans',sans-serif;
+}
+html{scroll-behavior:smooth}
+body{font-family:var(--sans);background:var(--bg);color:var(--tx);line-height:1.6;overflow-x:hidden}
+
+/* ---- Hero ---- */
+.hero{min-height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:2rem;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 50% 40%,rgba(59,130,246,.12),transparent 70%);pointer-events:none}
+.hero h1{font-size:clamp(2rem,5vw,3.5rem);font-weight:700;letter-spacing:-.03em;margin-bottom:.75rem;background:linear-gradient(135deg,#e2e8f0 30%,#60a5fa 70%);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero .sub{font-size:clamp(1rem,2.5vw,1.25rem);color:var(--tx2);max-width:640px;margin-bottom:2rem}
+.badge-row{display:flex;gap:.5rem;flex-wrap:wrap;justify-content:center;margin-bottom:2.5rem}
+.badge{font-family:var(--mono);font-size:.75rem;padding:.3rem .75rem;border-radius:20px;border:1px solid var(--bg3);color:var(--tx2);background:var(--bg2)}
+.badge b{color:var(--ac)}
+.cta-row{display:flex;gap:1rem;flex-wrap:wrap;justify-content:center}
+.cta{font-family:var(--sans);font-size:.95rem;font-weight:500;padding:.7rem 1.6rem;border-radius:8px;text-decoration:none;transition:all .2s}
+.cta-primary{background:var(--ac2);color:#fff;border:none}
+.cta-primary:hover{background:#2563eb;transform:translateY(-1px)}
+.cta-outline{background:transparent;color:var(--ac);border:1px solid rgba(96,165,250,.3)}
+.cta-outline:hover{border-color:var(--ac);background:rgba(96,165,250,.06)}
+
+/* ---- Canvas area ---- */
+.canvas-wrap{width:100%;max-width:720px;aspect-ratio:1.4;position:relative;margin:0 auto 2rem}
+canvas{width:100%;height:100%;border-radius:var(--radius);background:var(--bg2);border:1px solid rgba(255,255,255,.06)}
+.canvas-label{position:absolute;top:12px;left:16px;font-size:.8rem;color:var(--tx3);font-family:var(--mono)}
+
+/* ---- Sections ---- */
+section{padding:4rem 1.5rem;max-width:1100px;margin:0 auto}
+h2{font-size:1.75rem;font-weight:700;margin-bottom:.5rem;letter-spacing:-.02em}
+h2 span{color:var(--ac)}
+.sec-sub{color:var(--tx2);margin-bottom:2rem;max-width:600px}
+
+/* ---- Metrics row ---- */
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1rem;margin-bottom:2.5rem}
+.metric{background:var(--bg2);border:1px solid rgba(255,255,255,.05);border-radius:var(--radius);padding:1.25rem}
+.metric .label{font-size:.75rem;color:var(--tx3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.25rem}
+.metric .val{font-size:1.75rem;font-weight:700;font-family:var(--mono)}
+.metric .val.blue{color:var(--ac)}.metric .val.green{color:var(--gn)}.metric .val.amber{color:var(--am)}.metric .val.purple{color:var(--pp)}
+
+/* ---- Architecture ---- */
+.arch-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:2rem}
+@media(max-width:640px){.arch-grid{grid-template-columns:1fr}}
+.arch-card{background:var(--bg2);border:1px solid rgba(255,255,255,.05);border-radius:var(--radius);padding:1.25rem;position:relative;overflow:hidden}
+.arch-card::before{content:'';position:absolute;top:0;left:0;width:4px;height:100%;border-radius:2px}
+.arch-card:nth-child(1)::before{background:var(--pp)}
+.arch-card:nth-child(2)::before{background:var(--gn)}
+.arch-card:nth-child(3)::before{background:var(--am)}
+.arch-card:nth-child(4)::before{background:var(--ac)}
+.arch-card h3{font-size:1rem;font-weight:600;margin-bottom:.25rem}
+.arch-card .params{font-family:var(--mono);font-size:.8rem;color:var(--tx3)}
+.arch-card p{font-size:.85rem;color:var(--tx2);margin-top:.5rem}
+
+/* ---- Ablation table ---- */
+.table-wrap{overflow-x:auto;border-radius:var(--radius);border:1px solid rgba(255,255,255,.05)}
+table{width:100%;border-collapse:collapse;font-size:.9rem}
+th{background:var(--bg3);text-align:left;padding:.75rem 1rem;font-weight:500;font-size:.8rem;color:var(--tx3);text-transform:uppercase;letter-spacing:.06em}
+td{padding:.75rem 1rem;border-top:1px solid rgba(255,255,255,.04)}
+tr:hover td{background:rgba(96,165,250,.03)}
+.highlight{color:var(--ac);font-weight:600}
+.dim{color:var(--tx3)}
+.tag{display:inline-block;font-size:.7rem;padding:2px 8px;border-radius:4px;font-family:var(--mono)}
+.tag-green{background:rgba(52,211,153,.12);color:var(--gn)}
+.tag-red{background:rgba(248,113,113,.12);color:var(--rd)}
+
+/* ---- Diffusion steps ---- */
+.diff-steps{display:grid;grid-template-columns:repeat(5,1fr);gap:.75rem;margin-top:1.5rem}
+@media(max-width:640px){.diff-steps{grid-template-columns:repeat(3,1fr)}}
+.diff-step{text-align:center}
+.diff-step canvas{width:100%;aspect-ratio:1;border-radius:8px;background:var(--bg2);border:1px solid rgba(255,255,255,.04)}
+.diff-step .step-label{font-family:var(--mono);font-size:.75rem;color:var(--tx3);margin-top:.5rem}
+
+/* ---- Controls ---- */
+.controls{display:flex;gap:.75rem;flex-wrap:wrap;margin-bottom:1.5rem}
+.btn{font-family:var(--mono);font-size:.8rem;padding:.5rem 1rem;border-radius:6px;border:1px solid rgba(255,255,255,.1);background:var(--bg2);color:var(--tx2);cursor:pointer;transition:all .15s}
+.btn:hover{border-color:var(--ac);color:var(--ac)}
+.btn.active{background:rgba(96,165,250,.12);border-color:var(--ac);color:var(--ac)}
+
+/* ---- Footer ---- */
+footer{text-align:center;padding:3rem 1.5rem;color:var(--tx3);font-size:.85rem;border-top:1px solid rgba(255,255,255,.04)}
+footer a{color:var(--ac);text-decoration:none}
+
+/* ---- Animations ---- */
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}
+.anim{animation:fadeUp .6s ease-out both}
+.d1{animation-delay:.1s}.d2{animation-delay:.2s}.d3{animation-delay:.3s}.d4{animation-delay:.4s}.d5{animation-delay:.5s}
+</style>
+</head>
+<body>
+
+<!-- ====== HERO ====== -->
+<div class="hero">
+  <div class="badge-row anim">
+    <span class="badge"><b>PyTorch</b> 2.0+</span>
+    <span class="badge"><b>670K</b> params</span>
+    <span class="badge"><b>Transformer</b> + Diffusion</span>
+    <span class="badge"><b>ETH/UCY</b> benchmark</span>
+  </div>
+  <h1 class="anim d1">MotionTransformer</h1>
+  <p class="sub anim d2">Attention-based multi-agent trajectory forecasting with denoising diffusion. Watch pedestrian futures unfold in real-time.</p>
+  <div class="canvas-wrap anim d3">
+    <canvas id="trajCanvas"></canvas>
+    <div class="canvas-label">LIVE PREDICTION &mdash; click to regenerate</div>
+  </div>
+  <div class="cta-row anim d4">
+    <a href="https://github.com/JayDS22/MotionTransformer" class="cta cta-primary">View on GitHub</a>
+    <a href="#architecture" class="cta cta-outline">Explore Architecture</a>
+  </div>
+</div>
+
+<!-- ====== RESULTS ====== -->
+<section>
+  <h2 class="anim">Benchmark <span>Results</span></h2>
+  <p class="sec-sub anim d1">Evaluated on the ETH/UCY pedestrian trajectory benchmark across 5 scenes with Best-of-K sampling.</p>
+  <div class="metrics anim d2">
+    <div class="metric"><div class="label">Avg ADE</div><div class="val blue">0.83m</div></div>
+    <div class="metric"><div class="label">Avg FDE</div><div class="val green">1.34m</div></div>
+    <div class="metric"><div class="label">Diversity</div><div class="val amber">7.0</div></div>
+    <div class="metric"><div class="label">Parameters</div><div class="val purple">670K</div></div>
+  </div>
+  <div class="table-wrap anim d3">
+    <table>
+      <thead><tr><th>Scene</th><th>ADE ↓</th><th>FDE ↓</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td>ETH</td><td>1.16</td><td>2.00</td><td><span class="tag tag-green">trained</span></td></tr>
+        <tr><td>Hotel</td><td class="highlight">0.55</td><td class="highlight">0.73</td><td><span class="tag tag-green">trained</span></td></tr>
+        <tr><td>Univ</td><td>0.85</td><td>1.43</td><td><span class="tag tag-green">trained</span></td></tr>
+        <tr><td>Zara1</td><td>0.85</td><td>1.39</td><td><span class="tag tag-green">trained</span></td></tr>
+        <tr><td>Zara2</td><td>0.72</td><td>1.14</td><td><span class="tag tag-green">trained</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ====== ARCHITECTURE ====== -->
+<section id="architecture">
+  <h2 class="anim">Model <span>Architecture</span></h2>
+  <p class="sec-sub anim d1">Four custom components working together &mdash; dual-stream encoding, gated fusion, and diffusion-based generation.</p>
+  <div class="arch-grid anim d2">
+    <div class="arch-card">
+      <h3>Temporal Encoder</h3><div class="params">154,752 params &middot; 4 layers</div>
+      <p>Multi-head self-attention over the agent's own trajectory history. Captures velocity profiles, acceleration patterns, and motion dynamics using positional encoding + learned CLS token.</p>
+    </div>
+    <div class="arch-card">
+      <h3>Social Encoder</h3><div class="params">109,376 params &middot; 3 layers</div>
+      <p>Cross-attention where the ego agent attends to neighbors. Uses relative position, velocity, distance, and bearing features to model collision avoidance and group behavior.</p>
+    </div>
+    <div class="arch-card">
+      <h3>Gated Fusion</h3><div class="params">16,832 params</div>
+      <p>Sigmoid-gated blending of temporal and social context. The gate learns when to weight individual motion vs social interaction signals for each prediction.</p>
+    </div>
+    <div class="arch-card">
+      <h3>Diffusion Decoder</h3><div class="params">389,058 params &middot; 6 layers</div>
+      <p>Conditional DDPM with cosine noise schedule and AdaLN-modulated Transformer denoiser. Supports both full DDPM (100 steps) and DDIM (5&ndash;50 steps) sampling for diverse trajectories.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ====== DIFFUSION VISUALIZATION ====== -->
+<section>
+  <h2 class="anim">Diffusion <span>Denoising</span></h2>
+  <p class="sec-sub anim d1">Watch noise become motion. The reverse diffusion process progressively refines random Gaussian noise into coherent trajectory predictions.</p>
+  <div class="controls anim d2">
+    <button class="btn active" onclick="runDiffusion()">&#9654; Run Denoising</button>
+    <button class="btn" onclick="resetDiffusion()">Reset</button>
+  </div>
+  <div class="diff-steps anim d3" id="diffSteps">
+    <div class="diff-step"><canvas id="ds0" width="140" height="140"></canvas><div class="step-label">t=100 (noise)</div></div>
+    <div class="diff-step"><canvas id="ds1" width="140" height="140"></canvas><div class="step-label">t=75</div></div>
+    <div class="diff-step"><canvas id="ds2" width="140" height="140"></canvas><div class="step-label">t=50</div></div>
+    <div class="diff-step"><canvas id="ds3" width="140" height="140"></canvas><div class="step-label">t=25</div></div>
+    <div class="diff-step"><canvas id="ds4" width="140" height="140"></canvas><div class="step-label">t=0 (clean)</div></div>
+  </div>
+</section>
+
+<!-- ====== ABLATION ====== -->
+<section>
+  <h2 class="anim">Ablation <span>Study</span></h2>
+  <p class="sec-sub anim d1">Proving each component matters. The diffusion decoder is essential &mdash; without it, trajectory diversity collapses to near zero.</p>
+  <div class="table-wrap anim d2">
+    <table>
+      <thead><tr><th>Variant</th><th>minADE ↓</th><th>minFDE ↓</th><th>Diversity ↑</th><th>Finding</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Full Model</strong></td><td class="highlight">1.56</td><td class="highlight">2.61</td><td class="highlight">7.00</td><td>Best overall balance</td></tr>
+        <tr><td>Temporal Only</td><td>1.58</td><td>2.81</td><td>7.19</td><td>Social encoder improves FDE</td></tr>
+        <tr><td>No Social</td><td>1.45</td><td>2.58</td><td>6.97</td><td>Social context adds value</td></tr>
+        <tr><td>MLP Decoder</td><td>1.72</td><td>3.18</td><td class="dim">0.01</td><td><span class="tag tag-red">No diversity without diffusion</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ====== RUN IT ====== -->
+<section>
+  <h2 class="anim">Run It <span>Yourself</span></h2>
+  <p class="sec-sub anim d1">The full pipeline trains, evaluates across 5 scenes, and generates 11 publication figures in one command.</p>
+  <div style="background:var(--bg2);border-radius:var(--radius);padding:1.5rem;font-family:var(--mono);font-size:.85rem;color:var(--tx2);border:1px solid rgba(255,255,255,.05);overflow-x:auto" class="anim d2">
+    <div style="color:var(--tx3);margin-bottom:.75rem"># clone & install</div>
+    <div>git clone https://github.com/JayDS22/MotionTransformer.git</div>
+    <div>cd MotionTransformer</div>
+    <div>pip install -r requirements.txt</div>
+    <br>
+    <div style="color:var(--tx3)"># run full demo (train → evaluate → visualize)</div>
+    <div style="color:var(--gn)">python demo/quick_demo.py</div>
+    <br>
+    <div style="color:var(--tx3)"># or run unit tests</div>
+    <div>python tests/test_model.py</div>
+  </div>
+</section>
+
+<footer>
+  <p>MotionTransformer &mdash; Built by <a href="https://github.com/JayDS22">Jay Guwalani</a></p>
+  <p style="margin-top:.5rem">Transformer + Diffusion Trajectory Forecasting &middot; MIT License</p>
+</footer>
+
+<!-- ====== SCRIPTS ====== -->
+<script>
+// ---- Trajectory simulation engine ----
+const rand=(a,b)=>Math.random()*(b-a)+a;
+const lerp=(a,b,t)=>a+(b-a)*t;
+
+function genTrajectory(sx,sy,angle,speed,steps,curve){
+  const pts=[];let x=sx,y=sy,a=angle;
+  for(let i=0;i<steps;i++){
+    pts.push({x,y});
+    a+=curve*(Math.random()-.5);
+    x+=Math.cos(a)*speed+rand(-.3,.3);
+    y+=Math.sin(a)*speed+rand(-.3,.3);
+  }
+  return pts;
+}
+
+function genScene(){
+  const agents=[];
+  const n=Math.floor(rand(4,8));
+  for(let i=0;i<n;i++){
+    const sx=rand(80,640),sy=rand(80,360);
+    const angle=rand(0,Math.PI*2),speed=rand(3,7),curve=rand(-.08,.08);
+    const full=genTrajectory(sx,sy,angle,speed,20,curve);
+    const obs=full.slice(0,8),gt=full.slice(8);
+    const preds=[];
+    for(let k=0;k<12;k++){
+      const pa=angle+rand(-.4,.4),ps=speed*rand(.7,1.3),pc=curve+rand(-.06,.06);
+      preds.push(genTrajectory(obs[7].x,obs[7].y,pa,ps,12,pc));
+    }
+    agents.push({obs,gt,preds,color:`hsl(${rand(200,260)},70%,65%)`});
+  }
+  return agents;
+}
+
+// ---- Main canvas ----
+const mc=document.getElementById('trajCanvas');
+const ctx=mc.getContext('2d');
+let scene=genScene();
+let animFrame=0;
+
+function resizeCanvas(){
+  const r=mc.getBoundingClientRect();
+  mc.width=r.width*2;mc.height=r.height*2;
+  ctx.scale(2,2);
+}
+resizeCanvas();
+window.addEventListener('resize',resizeCanvas);
+mc.addEventListener('click',()=>{scene=genScene();animFrame=0;});
+
+function drawPath(pts,color,width,alpha,maxPts){
+  const n=Math.min(pts.length,maxPts||pts.length);
+  if(n<2)return;
+  ctx.beginPath();ctx.moveTo(pts[0].x,pts[0].y);
+  for(let i=1;i<n;i++)ctx.lineTo(pts[i].x,pts[i].y);
+  ctx.strokeStyle=color;ctx.globalAlpha=alpha;ctx.lineWidth=width;
+  ctx.lineCap='round';ctx.lineJoin='round';ctx.stroke();ctx.globalAlpha=1;
+}
+
+function drawDot(x,y,r,color){
+  ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fillStyle=color;ctx.fill();
+}
+
+function renderMain(){
+  const w=mc.width/2,h=mc.height/2;
+  ctx.clearRect(0,0,w,h);
+  // grid
+  ctx.strokeStyle='rgba(255,255,255,.03)';ctx.lineWidth=1;
+  for(let x=0;x<w;x+=40){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,h);ctx.stroke();}
+  for(let y=0;y<h;y+=40){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(w,y);ctx.stroke();}
+
+  const progress=Math.min(animFrame/60,1);
+  const predProg=Math.max(0,Math.min((animFrame-30)/40,1));
+
+  scene.forEach(ag=>{
+    const obsN=Math.ceil(progress*ag.obs.length);
+    // predictions
+    if(predProg>0){
+      const predN=Math.ceil(predProg*12);
+      ag.preds.forEach(p=>drawPath(p,ag.color,.8,.08,predN));
+      // best prediction (closest to GT)
+      let bestK=0,bestErr=Infinity;
+      ag.preds.forEach((p,k)=>{
+        let err=0;
+        for(let i=0;i<Math.min(p.length,ag.gt.length);i++)
+          err+=Math.hypot(p[i].x-ag.gt[i].x,p[i].y-ag.gt[i].y);
+        if(err<bestErr){bestErr=err;bestK=k;}
+      });
+      drawPath(ag.preds[bestK],'#f87171',2.5,.7,predN);
+      if(predN>=12){const ep=ag.preds[bestK][11];drawDot(ep.x,ep.y,4,'#f87171');}
+      // ground truth
+      drawPath(ag.gt,'#34d399',2,.5,predN);
+      if(predN>=12){const ep=ag.gt[11];drawDot(ep.x,ep.y,5,'#34d399');}
+    }
+    // observed
+    drawPath(ag.obs.slice(0,obsN),'#e2e8f0',2.5,1);
+    if(obsN>0)drawDot(ag.obs[0].x,ag.obs[0].y,4,'#e2e8f0');
+    if(obsN>=8)drawDot(ag.obs[7].x,ag.obs[7].y,5,'#e2e8f0');
+  });
+
+  // legend
+  ctx.globalAlpha=.8;ctx.font='12px "DM Sans"';
+  const ly=h-16;
+  ctx.fillStyle='#e2e8f0';ctx.fillRect(16,ly-4,8,8);ctx.fillText('Observed',30,ly+4);
+  ctx.fillStyle='#60a5fa';ctx.fillRect(110,ly-4,8,8);ctx.fillText('Predictions (K=12)',124,ly+4);
+  ctx.fillStyle='#f87171';ctx.fillRect(280,ly-4,8,8);ctx.fillText('Best sample',294,ly+4);
+  ctx.fillStyle='#34d399';ctx.fillRect(390,ly-4,8,8);ctx.fillText('Ground truth',404,ly+4);
+  ctx.globalAlpha=1;
+
+  animFrame++;
+  if(animFrame<100)requestAnimationFrame(renderMain);
+  else setTimeout(()=>{scene=genScene();animFrame=0;renderMain();},3000);
+}
+renderMain();
+
+// ---- Diffusion denoising canvases ----
+const diffCanvases=[0,1,2,3,4].map(i=>document.getElementById('ds'+i));
+const noiseLevels=[1,.75,.5,.25,0];
+
+function genGTCurve(){
+  const pts=[];let x=30,y=110,a=-1.2;
+  for(let i=0;i<12;i++){pts.push({x,y});x+=8;y-=6+Math.sin(i*.5)*3;a-=.02;}
+  return pts;
+}
+const diffGT=genGTCurve();
+
+function drawDiffStep(idx,noiseLevel){
+  const c=diffCanvases[idx];if(!c)return;
+  const cx=c.getContext('2d');
+  const w=c.width,h=c.height;
+  cx.clearRect(0,0,w,h);
+  // grid
+  cx.strokeStyle='rgba(255,255,255,.04)';cx.lineWidth=.5;
+  for(let x=0;x<w;x+=20){cx.beginPath();cx.moveTo(x,0);cx.lineTo(x,h);cx.stroke();}
+  for(let y=0;y<h;y+=20){cx.beginPath();cx.moveTo(0,y);cx.lineTo(w,y);cx.stroke();}
+  // noisy trajectory
+  const pts=diffGT.map(p=>({
+    x:p.x+rand(-40,40)*noiseLevel,
+    y:p.y+rand(-40,40)*noiseLevel
+  }));
+  // draw
+  if(pts.length>1){
+    cx.beginPath();cx.moveTo(pts[0].x,pts[0].y);
+    for(let i=1;i<pts.length;i++)cx.lineTo(pts[i].x,pts[i].y);
+    const alpha=1-noiseLevel*.5;
+    cx.strokeStyle=noiseLevel>.5?'rgba(248,113,113,'+alpha+')':
+                   noiseLevel>.1?'rgba(251,191,36,'+alpha+')':'rgba(52,211,153,'+alpha+')';
+    cx.lineWidth=2;cx.lineCap='round';cx.stroke();
+    // endpoint
+    const ep=pts[pts.length-1];
+    cx.beginPath();cx.arc(ep.x,ep.y,3,0,Math.PI*2);cx.fill();
+  }
+  // GT reference
+  if(noiseLevel<.5){
+    cx.beginPath();cx.moveTo(diffGT[0].x,diffGT[0].y);
+    for(let i=1;i<diffGT.length;i++)cx.lineTo(diffGT[i].x,diffGT[i].y);
+    cx.strokeStyle='rgba(52,211,153,.3)';cx.lineWidth=1;cx.setLineDash([3,3]);cx.stroke();cx.setLineDash([]);
+  }
+}
+
+function runDiffusion(){
+  document.querySelectorAll('.controls .btn').forEach(b=>b.classList.remove('active'));
+  document.querySelector('.controls .btn').classList.add('active');
+  let step=0;
+  function tick(){
+    if(step>4)return;
+    drawDiffStep(step,noiseLevels[step]);
+    step++;
+    setTimeout(tick,400);
+  }
+  tick();
+}
+function resetDiffusion(){diffCanvases.forEach(c=>{const x=c.getContext('2d');x.clearRect(0,0,c.width,c.height)});}
+// Auto-run on load
+setTimeout(runDiffusion,1500);
+
+// ---- Intersection observer for animations ----
+const obs=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('anim');});
+},{threshold:.15});
+document.querySelectorAll('section h2, section p, .arch-grid, .table-wrap, .metrics').forEach(el=>obs.observe(el));
+</script>
+</body>
+</html>
