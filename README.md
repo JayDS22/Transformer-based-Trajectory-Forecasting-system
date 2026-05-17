@@ -19,34 +19,14 @@ We present **MotionTransformer**, a novel architecture combining Temporal-Social
 
 ## Architecture
 
-```
-    Observed Trajectories (x,y)          Neighbor Trajectories
-               │                                  │
-               ▼                                  ▼
-    ┌─────────────────────┐           ┌─────────────────────┐
-    │  Temporal Encoder   │           │   Social Encoder    │
-    │  4-layer self-attn  │           │  3-layer cross-attn │
-    │  + velocity features│           │  + relative features│
-    └──────────┬──────────┘           └──────────┬──────────┘
-               │                                  │
-               └──────────┬───────────────────────┘
-                          ▼
-                ┌───────────────────┐
-                │   Gated Fusion    │
-                │  sigmoid blending │
-                └────────┬──────────┘
-                         ▼
-          ┌───────────────────────────────┐
-          │  Diffusion Trajectory Decoder │
-          │  DDPM (100 steps, cosine β)   │
-          │  6-layer conditional denoiser │
-          │  + DDIM accelerated sampling  │
-          └──────────────┬────────────────┘
-                         ▼
-          ┌───────────────────────────────┐
-          │  K = 20 Diverse Trajectory    │
-          │  Samples (Best-of-K eval)     │
-          └───────────────────────────────┘
+```mermaid
+flowchart TD
+    OT[Observed Trajectories x,y] --> TE[Temporal Encoder<br/>4-layer self-attention<br/>+ velocity features]
+    NT[Neighbor Trajectories] --> SE[Social Encoder<br/>3-layer cross-attention<br/>+ relative features]
+    TE --> GF[Gated Fusion<br/>sigmoid blending]
+    SE --> GF
+    GF --> DEC[Diffusion Trajectory Decoder<br/>DDPM 100 steps, cosine β<br/>6-layer conditional denoiser<br/>+ DDIM accelerated sampling]
+    DEC --> OUT[K=20 Diverse Trajectory Samples<br/>Best-of-K eval]
 ```
 
 ### Model Parameters (670K total)
@@ -242,7 +222,7 @@ MotionTransformer/
 │   ├── analysis.py                    # Ablation study (4 variants)
 │   └── generate_figures.py            # Figure generation
 ├── tests/
-│   └── test_model.py                  # Unit tests (all pass ✓)
+│   └── test_model.py                  # Unit tests (all pass )
 └── results/
     ├── checkpoints/best_model.pt      # Trained model weights
     ├── figures/                        # 11 publication-quality figures
